@@ -34,3 +34,4 @@ export declare function createInViewDirective(globalConfig?: Partial<InViewConfi
  * // <div v-outview="handleExit">...</div>
  */
 export declare function createOutViewDirective(globalConfig?: Partial<InViewConfig>): ObjectDirective;
+export type { InViewConfig, InViewEvent } from '@opuu/inview';

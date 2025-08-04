@@ -153,3 +153,5 @@ export function createOutViewDirective(globalConfig: Partial<InViewConfig> = {})
 		},
 	};
 }
+
+export type { InViewConfig, InViewEvent } from "@opuu/inview";
