@@ -11,15 +11,27 @@ interface HTMLElementWithInView extends HTMLElement {
 }
 
 /**
+ * Check if we're running in a browser environment (not SSR)
+ */
+function isBrowser(): boolean {
+	return typeof window !== "undefined" && typeof document !== "undefined";
+}
+
+/**
  * Ensure that an InView instance exists on the element.
  *
  * @param {HTMLElementWithInView} el - The HTML element to observe.
  * @param {Partial<InViewConfig>} config - Global configuration for InView.
- * @returns {InView} The InView instance associated with the element.
+ * @returns {InView | null} The InView instance associated with the element, or null if not in browser environment.
  *
  * Algorithm: Underlying Intersection Observer API; time complexity is O(n) per observed element.
  */
-function ensureInViewInstance(el: HTMLElementWithInView, config: Partial<InViewConfig>): InView {
+function ensureInViewInstance(el: HTMLElementWithInView, config: Partial<InViewConfig>): InView | null {
+	// Skip during SSR
+	if (!isBrowser()) {
+		return null;
+	}
+
 	if (!el.__inviewInstance) {
 		// Generate a unique class for the element if not already present.
 		if (!el.__inviewUniqueClass) {
@@ -69,8 +81,18 @@ export function createInViewDirective(globalConfig: Partial<InViewConfig> = {}):
 				console.warn("[InView]: v-inview expects a function as its value.");
 				return;
 			}
+
+			// Skip during SSR
+			if (!isBrowser()) {
+				return;
+			}
+
 			// Get or create the InView instance.
 			const instance = ensureInViewInstance(el as HTMLElementWithInView, globalConfig);
+			if (!instance) {
+				return;
+			}
+
 			instance.on("enter", (event: InViewEvent) => {
 				callback(event);
 			});
@@ -93,6 +115,20 @@ export function createInViewDirective(globalConfig: Partial<InViewConfig> = {}):
 					delete element.__inviewListenerCount;
 				}
 			}
+		},
+
+		/**
+		 * SSR-specific hook that returns props to be rendered during server-side rendering.
+		 * This prevents the "getSSRProps" error in Nuxt and other SSR frameworks.
+		 *
+		 * @param {DirectiveBinding} _binding - The binding object (unused).
+		 * @returns {Record<string, any>} Empty object since we don't need to add any attributes during SSR.
+		 */
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		getSSRProps(_binding: DirectiveBinding) {
+			// Return empty object since InView directives don't need to add any attributes during SSR
+			// The directive will initialize properly on the client-side during hydration
+			return {};
 		},
 	};
 }
@@ -127,7 +163,17 @@ export function createOutViewDirective(globalConfig: Partial<InViewConfig> = {})
 				console.warn("[InView]: v-outview expects a function as its value.");
 				return;
 			}
+
+			// Skip during SSR
+			if (!isBrowser()) {
+				return;
+			}
+
 			const instance = ensureInViewInstance(el as HTMLElementWithInView, globalConfig);
+			if (!instance) {
+				return;
+			}
+
 			instance.on("exit", (event: InViewEvent) => {
 				callback(event);
 			});
@@ -150,6 +196,20 @@ export function createOutViewDirective(globalConfig: Partial<InViewConfig> = {})
 					delete element.__inviewListenerCount;
 				}
 			}
+		},
+
+		/**
+		 * SSR-specific hook that returns props to be rendered during server-side rendering.
+		 * This prevents the "getSSRProps" error in Nuxt and other SSR frameworks.
+		 *
+		 * @param {DirectiveBinding} _binding - The binding object (unused).
+		 * @returns {Record<string, any>} Empty object since we don't need to add any attributes during SSR.
+		 */
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		getSSRProps(_binding: DirectiveBinding) {
+			// Return empty object since OutView directives don't need to add any attributes during SSR
+			// The directive will initialize properly on the client-side during hydration
+			return {};
 		},
 	};
 }
