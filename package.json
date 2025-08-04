@@ -1,6 +1,6 @@
 {
     "name": "@opuu/inview-vue",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Vue.js directives for viewport detection - v-inview and v-outview directives powered by @opuu/inview. Perfect for Vue 3 lazy loading, scroll animations, infinite scroll, analytics tracking with TypeScript support.",
     "type": "module",
     "files": [
